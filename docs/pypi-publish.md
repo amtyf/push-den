@@ -9,11 +9,28 @@ This project uses a GitHub Actions workflow at `.github/workflows/python-publish
 3. Installs build tools.
 4. Builds the source distribution and wheel.
 5. Runs `twine check` on the generated artifacts.
-6. Uploads the package to PyPI when a release is published or a `v*` tag is pushed.
+6. Uploads the package to PyPI using GitHub OIDC trusted publishing when a release is published or a `v*` tag is pushed.
 
-## Required GitHub secret
+## PyPI setup
 
-Add this repository secret in GitHub:
+Configure the package on PyPI as a **Trusted Publisher** for this GitHub repository.
+
+In PyPI:
+
+1. Open your project on PyPI.
+2. Go to **Publishing** or **Trusted Publishers**.
+3. Add a trusted publisher for this GitHub repository.
+4. Save the configuration.
+
+## GitHub permissions
+
+The workflow requires the following permission:
+
+- `id-token: write`
+
+## Optional GitHub secret
+
+The workflow no longer needs a PyPI API token. If you keep one around for manual uploads, the secret name would be:
 
 - `PYPI_API_TOKEN` — a PyPI API token with permission to upload the package.
 
@@ -29,7 +46,7 @@ git push origin v1.3.4
 ```
 
 2. Publish a GitHub Release for that tag.
-3. The workflow will build and upload the package.
+3. The workflow will build and upload the package using trusted publishing.
 
 ### Option 2: Manual workflow run
 
