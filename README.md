@@ -1,10 +1,26 @@
 # push-den
 
-A wrapper library for sending push notifications through Firebase Cloud Messaging (FCM) and Apple Push Notification service (APNs).
+`push-den` is a Python wrapper library for sending push notifications through Firebase Cloud Messaging (FCM) and Apple Push Notification service (APNs).
 
-## Requirements
+[![Python](https://img.shields.io/badge/python-3.8%2B-blueviolet?logo=python&logoColor=white)](https://www.python.org)
+[![Pre-Commit](https://img.shields.io/badge/pre--commit-enabled-blue?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
+[![Code Style: Black](https://img.shields.io/badge/code%20style-Black-000000.svg)](https://github.com/psf/black)
+[![Tests](https://github.com/amtyf/push-den/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/amtyf/push-den/actions/workflows/tests.yml)
+[![Codecov](https://codecov.io/gh/amtyf/push-den/graph/badge.svg)](https://codecov.io/gh/amtyf/push-den)
+[![License: MIT](https://img.shields.io/badge/License-MIT-ff69b4.svg)](./LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/push-den?logo=pypi&logoColor=white)](https://pypi.org/project/push-den/)
 
-- Python 3.8+
+Current version: `1.3.3`
+
+Release history: [CHANGELOG.md](./CHANGELOG.md)
+
+## PyPI Project Page
+
+[https://pypi.org/project/push-den/](https://pypi.org/project/push-den/)
+
+## Dependencies
+
+- Python 3.8 or above
 
 ## Installation
 
@@ -22,8 +38,6 @@ pip install dist/push_den-<version>-py3-none-any.whl
 ## Configuration
 
 Create a `.env` file from `.env.example` and set the required values.
-
-Minimal runtime configuration in code:
 
 ```python
 import os
@@ -124,7 +138,6 @@ print(response)
 
 ## Payload size helpers
 
-You can estimate payload size before sending:
 
 ```python
 from push_den.notificationfactory.fcm_factory.fcm_notification import FcmNotification

@@ -253,8 +253,6 @@ class ApnsNotification:
         sem = asyncio.Semaphore(concurrency)
 
         async def _post_one(http_client: httpx.AsyncClient, reg_id: str):
-            if exit_flag.is_set():
-                return None
             path = self.get_path(reg_id)
             async with sem:
                 if exit_flag.is_set():
@@ -275,24 +273,18 @@ class ApnsNotification:
 
         async with httpx.AsyncClient(http2=True, base_url=base_url, timeout=10.0) as client:
             tasks = [asyncio.create_task(_post_one(client, reg_id)) for reg_id in registration_ids]
+            for coro in asyncio.as_completed(tasks):
+                entry = await coro
+                if entry:
+                    result["responses"].append(entry)
+                if exit_flag.is_set():
+                    # Cancel all pending tasks
+                    for t in tasks:
+                        t.cancel()
+                    result["exit"] = True
+                    break
 
-            try:
-                for coro in asyncio.as_completed(tasks):
-                    entry = await coro
-                    if entry:
-                        result["responses"].append(entry)
-                    if exit_flag.is_set():
-                        # Cancel all pending tasks
-                        for t in tasks:
-                            if not t.done():
-                                t.cancel()
-                        result["exit"] = True
-                        break
-            finally:
-                for t in tasks:
-                    with contextlib.suppress(asyncio.CancelledError):
-                        if not t.done():
-                            await t
+            await asyncio.gather(*tasks, return_exceptions=True)
 
         return result
 
@@ -318,17 +310,18 @@ class ApnsNotification:
             return result_container.get("value")
 
     def send(self, payload=None):
+        if payload is None:
+            raise RuntimeError("Message must be provided.")
+
         send_mode = payload.get("send_mode")
         force_exit_on = payload.get("force_exit_on")
         device_token = payload.get("device_token")
         device_tokens = payload.get("device_tokens")
-        notification = payload.get("notification").get("data")
-        immutable_notification = payload.get("notification").get("message_body")
-        title = payload.get("notification").get("title")
-        ttl = payload.get("notification").get("ttl", 30 * 24 * 60 * 60)
-
-        if payload is None:
-            raise RuntimeError("Message must be provided.")
+        notification_payload = payload.get("notification") or {}
+        notification = notification_payload.get("data")
+        immutable_notification = notification_payload.get("message_body")
+        title = notification_payload.get("title")
+        ttl = notification_payload.get("ttl", 30 * 24 * 60 * 60)
 
         if send_mode is None:
             raise RuntimeError("send_mode must be provided.")

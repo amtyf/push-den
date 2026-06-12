@@ -4,13 +4,14 @@ from jsonschema import validate
 import firebase_admin
 from firebase_admin import messaging
 from firebase_admin.credentials import Certificate
+from typing import Optional
 from ...enums.fcm import FcmSenderType
 from ...schema.schema import Schema
 from ...notification import Notification
 
 
 class FcmNotification(Notification):
-    def __init__(self, certificate_name: str = None):
+    def __init__(self, certificate_name: Optional[str] = None):
 
         if certificate_name is None:
             raise Exception("Certificate name must be provided.")
@@ -19,8 +20,10 @@ class FcmNotification(Notification):
         self.default_app = firebase_admin.initialize_app(credential=self.cert)
         self.MAX_TTL = 2419200
 
-    def validate_data(self, device_tokens=[], notification=None):
-        if device_tokens is None or len(device_tokens) == 0 or device_tokens[0] is None:
+    def validate_data(self, device_tokens=None, notification=None):
+        if device_tokens is None:
+            device_tokens = []
+        if len(device_tokens) == 0 or device_tokens[0] is None:
             raise Exception("Must provide a device token.")
 
         if notification is None:
@@ -115,8 +118,10 @@ class FcmNotification(Notification):
             return SendResponse(None, str(e))
 
     def multiple_devices_data_message(
-        self, device_tokens: list = [], notification=None
+        self, device_tokens=None, notification=None
     ):
+        if device_tokens is None:
+            device_tokens = []
         if len(device_tokens) == 0:
             raise Exception("Must provide device tokens.")
 
@@ -141,13 +146,14 @@ class FcmNotification(Notification):
         return response
 
     def send(self, payload=None):
+        if payload is None:
+            raise Exception("Message must be provided.")
+
         send_mode = payload.get("send_mode")
         device_token = payload.get("device_token")
         device_tokens = payload.get("device_tokens")
         notification = payload.get("notification")
 
-        if payload is None:
-            raise Exception("Message must be provided.")
 
         if send_mode is None:
             raise Exception("send_mode must be provided.")
